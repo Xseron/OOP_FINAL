@@ -52,6 +52,7 @@ public class LocalizationManager {
         Map<String, String> m = dict.get(currentLanguage);
         if (m == null)
             return key;
+        // Returning the key for missing entries makes untranslated labels visible during testing.
         return m.getOrDefault(key, key);
     }
 }

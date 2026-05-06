@@ -51,6 +51,7 @@ public class Teacher extends Employee {
 
     /** put mark for student in course */
     public void putMark(Student student, Course course, Mark mark) {
+        // Transcript is the single source of truth for marks and GPA calculations.
         student.getTranscript().addMark(course, mark);
     }
 

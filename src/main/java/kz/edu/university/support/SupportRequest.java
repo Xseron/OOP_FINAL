@@ -52,6 +52,7 @@ public class SupportRequest implements Serializable {
     }
 
     public void markViewed() {
+        // Keep transition monotonic: once moved past NEW, viewing should not roll state back.
         if (status == RequestStatus.NEW)
             status = RequestStatus.VIEWED;
     }

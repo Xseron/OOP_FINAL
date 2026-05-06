@@ -9,7 +9,6 @@ import kz.edu.university.enums.Language;
 import kz.edu.university.exception.CreditLimitExceededException;
 import kz.edu.university.exception.TooManyFailsException;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -113,9 +112,11 @@ public class Student extends User implements Comparable<Student> {
     /** register w/ credit + fail caps */
     public void registerForCourse(Course course)
             throws CreditLimitExceededException, TooManyFailsException {
+        // Registration is blocked globally once fail threshold is reached, regardless of course load.
         if (failedCoursesCount >= FAIL_CAP) {
             throw new TooManyFailsException("Failed " + failedCoursesCount + " courses, can't register");
         }
+        // Enforce total semester load limit before mutating student state.
         if (currentCredits + course.getCredits() > CREDIT_CAP) {
             throw new CreditLimitExceededException(
                     "Cant exceed " + CREDIT_CAP + " credits, has " + currentCredits + "+" + course.getCredits());
@@ -150,6 +151,7 @@ public class Student extends User implements Comparable<Student> {
 
     /** recompute gpa from transcript */
     public void recomputeGpa() {
+        // GPA is derived data; we recompute from transcript instead of storing incremental deltas.
         this.gpa = transcript.calculateGPA();
     }
 

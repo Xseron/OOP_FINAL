@@ -40,10 +40,12 @@ public class ResearchProject implements Serializable {
 
     /** overload for adding by raw object — throws if not Researcher */
     public void addParticipant(Object person) throws NotResearcherException {
+        // Pattern matching keeps type-check and cast in one place.
         if (!(person instanceof Researcher r)) {
             throw new NotResearcherException(
                     person.getClass().getSimpleName() + " is not a Researcher");
         }
+        // Safe to add only after validation succeeds.
         participants.add(r);
     }
 

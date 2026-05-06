@@ -22,9 +22,11 @@ public class Transcript implements Serializable {
     public double calculateGPA() {
         double total = 0; int credits = 0;
         for (Map.Entry<Course, Mark> e : marks.entrySet()) {
+            // Each course contributes proportionally to its credit count.
             total += e.getValue().CalculateTotal() * e.getKey().getCredits();
             credits += e.getKey().getCredits();
         }
+        // Empty transcript is treated as 0.0 to avoid division-by-zero and undefined GPA.
         return credits == 0 ? 0.0 : total / credits;
     }
 

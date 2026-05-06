@@ -28,12 +28,14 @@ public class Mark implements Serializable {
 
     /** 30/30/40 standart */
     public double CalculateTotal() {
+        // Final exam has the largest weight, so poor finals strongly impact total.
         return 0.3 * firstAttestation + 0.3 * secondAttestation + 0.4 * finalExam;
     }
 
     /** letter from total */
     public String getLetterGrade() {
         double t = CalculateTotal();
+        // Boundaries are checked from highest to lowest so first match is the final grade.
         if (t >= 90) return "A";
         if (t >= 75) return "B";
         if (t >= 60) return "C";
