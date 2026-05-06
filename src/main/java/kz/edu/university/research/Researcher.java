@@ -14,7 +14,9 @@ public interface Researcher {
 
     /** sort papers by given comparator and print */
     default void printPapers(Comparator<ResearchPaper> comparator) {
-        getPapers().stream().sorted(comparator).forEach(System.out::println);
+        getPapers().stream()
+                .sorted(comparator)
+                .forEach(System.out::println);
     }
 
     /** h-index = max i where papers[i].cits >= i+1, sorted desc */
@@ -22,12 +24,14 @@ public interface Researcher {
         List<ResearchPaper> sorted = getPapers().stream()
                 .sorted((a, b) -> Integer.compare(b.getCitations(), a.getCitations()))
                 .toList();
+
         int h = 0;
         for (int i = 0; i < sorted.size(); i++) {
-            if (sorted.get(i).getCitations() >= i + 1)
+            if (sorted.get(i).getCitations() >= i + 1) {
                 h = i + 1;
-            else
+            } else {
                 break;
+            }
         }
         return h;
     }

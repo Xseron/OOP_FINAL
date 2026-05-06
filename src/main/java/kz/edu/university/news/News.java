@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/** uni news, RESEARCH topic pinned first */
+/** uni news. RESEARCH topic is pinned first per spec */
 public class News implements Serializable, Comparable<News> {
     private static final long serialVersionUID = 1L;
 

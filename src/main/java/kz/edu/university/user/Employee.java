@@ -40,7 +40,6 @@ public abstract class Employee extends User implements Serializable {
     /** send msg to other employee */
     public Message sendMessage(Employee receiver, String text) {
         Message m = new Message(this, receiver, text);
-        // in real system would queue / push; here just return
         return m;
     }
 

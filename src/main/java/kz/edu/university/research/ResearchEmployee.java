@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/** employee who researches but isnt a teacher */
+/** employee who researches but isn't a teacher */
 public class ResearchEmployee extends Employee implements Researcher {
     private static final long serialVersionUID = 1L;
 

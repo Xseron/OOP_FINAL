@@ -15,13 +15,24 @@ public class ResearchProject implements Serializable {
     /** field name is intentionally `publishPapers` per diagram (typo or not, follow it) */
     private List<ResearchPaper> publishPapers = new ArrayList<>();
 
-    public ResearchProject() {}
+    public ResearchProject() {
+    }
 
-    public ResearchProject(String topic) { this.topic = topic; }
+    public ResearchProject(String topic) {
+        this.topic = topic;
+    }
 
-    public String getTopic() { return topic; }
-    public List<Researcher> getParticipants() { return participants; }
-    public List<ResearchPaper> getPublishPapers() { return publishPapers; }
+    public String getTopic() {
+        return topic;
+    }
+
+    public List<Researcher> getParticipants() {
+        return participants;
+    }
+
+    public List<ResearchPaper> getPublishPapers() {
+        return publishPapers;
+    }
 
     public void addParticipant(Researcher researcher) {
         participants.add(researcher);
@@ -36,9 +47,12 @@ public class ResearchProject implements Serializable {
         participants.add(r);
     }
 
-    public void addPaper(ResearchPaper paper) { publishPapers.add(paper); }
+    public void addPaper(ResearchPaper paper) {
+        publishPapers.add(paper);
+    }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return "Project{" + topic + ", " + participants.size() + " participants}";
     }
 }
