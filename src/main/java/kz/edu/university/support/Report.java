@@ -32,11 +32,15 @@ public class Report implements Serializable {
     }
 
     public LocalDateTime getCreatedAt() {
-        return createdAt;
+    return createdAt;
     }
 
     public void setContent(String c) {
         this.content = c;
+    }
+
+    public boolean hasContent() {
+        return content != null && !content.trim().isEmpty();
     }
 
     /** noop — generation happens at construction; method exists per UML */
@@ -44,7 +48,6 @@ public class Report implements Serializable {
         if (createdAt == null)
             createdAt = LocalDateTime.now();
     }
-
     /** print to stdout (no file io for demo) */
     public void export() {
         System.out.println("=== " + title + " ===");

@@ -62,11 +62,15 @@ public class SupportRequest implements Serializable {
     }
 
     public void reject() {
-        status = RequestStatus.REJECTED;
-    }
+    status = RequestStatus.REJECTED;
+}
 
     public void markDone() {
-        status = RequestStatus.DONE;
+    status = RequestStatus.DONE;
+}
+
+    public boolean isClosed() {
+        return status == RequestStatus.DONE || status == RequestStatus.REJECTED;
     }
 
     @Override
