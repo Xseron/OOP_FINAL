@@ -72,6 +72,8 @@ public class ResearchPaper implements Serializable, Comparable<ResearchPaper> {
     }
 
     public void setCitations(int c) {
+        if (c < 0)
+            throw new IllegalArgumentException("Citations cannot be negative, got: " + c);
         this.citations = c;
     }
 

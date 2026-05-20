@@ -51,6 +51,10 @@ public class Teacher extends Employee {
 
     /** put mark for student in course */
     public void putMark(Student student, Course course, Mark mark) {
+        if (!assignedCourses.contains(course))
+            throw new IllegalArgumentException("Teacher is not assigned to course: " + course.getTitle());
+        if (!student.getRegisteredCourses().contains(course))
+            throw new IllegalArgumentException("Student is not enrolled in course: " + course.getTitle());
         // Transcript is the single source of truth for marks and GPA calculations.
         student.getTranscript().addMark(course, mark);
     }
@@ -63,6 +67,11 @@ public class Teacher extends Employee {
 
     /** send complaint to dean about student */
     public Complaint sendComplaint(Student student, Manager dean, UrgencyLevel urgency, String text) {
+        boolean teaches = assignedCourses.stream()
+            .anyMatch(c -> student.getRegisteredCourses().contains(c));
+        if (!teaches)
+            throw new IllegalArgumentException(
+                    "Teacher has no course in common with student: " + student.getUsername());
         Complaint c = new Complaint(this, student, dean, urgency, text);
         c.submit();
         return c;

@@ -13,6 +13,7 @@ public class Mark implements Serializable {
     public Mark() {}
 
     public Mark(double a1, double a2, double fin) {
+        validate(a1); validate(a2); validate(fin);
         this.firstAttestation = a1;
         this.secondAttestation = a2;
         this.finalExam = fin;
@@ -22,9 +23,10 @@ public class Mark implements Serializable {
     public double getSecondAttestation() { return secondAttestation; }
     public double getFinalExam() { return finalExam; }
 
-    public void setFirstAttestation(double v) { this.firstAttestation = v; }
-    public void setSecondAttestation(double v) { this.secondAttestation = v; }
-    public void setFinalExam(double v) { this.finalExam = v; }
+
+    public void setFirstAttestation(double v) { validate(v); this.firstAttestation = v; }
+    public void setSecondAttestation(double v) { validate(v); this.secondAttestation = v; }
+    public void setFinalExam(double v) { validate(v); this.finalExam = v; }
 
     /** 30/30/40 standart */
     public double CalculateTotal() {
@@ -41,6 +43,11 @@ public class Mark implements Serializable {
         if (t >= 60) return "C";
         if (t >= 50) return "D";
         return "F";
+    }
+
+    private static void validate(double v) {
+        if (v < 0 || v > 100)
+            throw new IllegalArgumentException("Mark must be between 0 and 100, got: " + v);
     }
 
     @Override public String toString() {

@@ -121,6 +121,9 @@ public class Student extends User implements Comparable<Student> {
             throw new CreditLimitExceededException(
                     "Cant exceed " + CREDIT_CAP + " credits, has " + currentCredits + "+" + course.getCredits());
         }
+        if (registeredCourses.contains(course)) {
+            throw new IllegalArgumentException("Already registered for course: " + course.getTitle());
+        }
         registeredCourses.add(course);
         currentCredits += course.getCredits();
     }
@@ -141,6 +144,8 @@ public class Student extends User implements Comparable<Student> {
 
     /** rate teacher 1..5 */
     public void rateTeacher(Teacher teacher, int rating) {
+        if ( rating < 1 || rating > 5)
+            throw new IllegalArgumentException("Rating must be between 1 and 5, got: " + rating);
         teacherRatings.put(teacher, rating);
     }
 

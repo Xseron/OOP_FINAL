@@ -34,6 +34,9 @@ public abstract class Employee extends User implements Serializable {
     }
 
     public void setSalary(double s) {
+        if (s < 0){
+            throw new IllegalArgumentException("Salary cannot be negative, got: " + s);
+        }
         this.salary = s;
     }
 
