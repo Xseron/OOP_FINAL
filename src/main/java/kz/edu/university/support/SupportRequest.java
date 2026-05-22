@@ -58,16 +58,22 @@ public class SupportRequest implements Serializable {
     }
 
     public void accept() {
+        if (status != RequestStatus.VIEWED)
+            throw new IllegalStateException("Can only accept a VIEWED request, current: " + status);
         status = RequestStatus.ACCEPTED;
     }
 
     public void reject() {
-    status = RequestStatus.REJECTED;
-}
+        if (status != RequestStatus.VIEWED && status != RequestStatus.ACCEPTED)
+            throw new IllegalStateException("Can only reject a VIEWED or ACCEPTED request, current: " + status);
+        status = RequestStatus.REJECTED;
+    }
 
     public void markDone() {
-    status = RequestStatus.DONE;
-}
+        if (status != RequestStatus.ACCEPTED)
+            throw new IllegalStateException("Can only mark DONE an ACCEPTED request, current: " + status);
+        status = RequestStatus.DONE;
+    }
 
     public boolean isClosed() {
         return status == RequestStatus.DONE || status == RequestStatus.REJECTED;
