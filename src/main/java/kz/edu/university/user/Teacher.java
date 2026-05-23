@@ -43,7 +43,7 @@ public class Teacher extends Employee {
         return assignedCourses;
     }
 
-    /** placeholder — could update lessons / details */
+    /** placeholder - could update lessons / details */
     public void manageCourse(Course course) {
         if (!assignedCourses.contains(course))
             assignedCourses.add(course);
@@ -59,7 +59,7 @@ public class Teacher extends Employee {
         student.getTranscript().addMark(course, mark);
     }
 
-    /** all students who registered for this course (filter from a roster — stub) */
+    /** all students who registered for this course (filter from a roster - stub) */
     public List<Student> viewStudents(Course course) {
         // in real system would query roster; stub returns empty
         return new ArrayList<>();

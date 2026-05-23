@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/** professor — always a researcher (per spec) */
+/** professor - always a researcher (per spec) */
 public class Professor extends Teacher implements Researcher {
     private static final long serialVersionUID = 1L;
 

@@ -42,7 +42,7 @@ public class GraduateStudent extends Student implements Researcher {
         return diplomaPapers;
     }
 
-    /** assign supervisor — h-index >= 3 required */
+    /** assign supervisor - h-index >= 3 required */
     public void chooseSupervisor(Researcher supervisor) throws LowHIndexException {
         if (supervisor.calculateHIndex() < 3) {
             throw new LowHIndexException(

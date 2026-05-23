@@ -77,6 +77,6 @@ public class News implements Serializable, Comparable<News> {
 
     @Override
     public String toString() {
-        return (pinned ? "[PINNED] " : "") + "News{" + title + " — " + topic + "}";
+        return (pinned ? "[PINNED] " : "") + "News{" + title + " - " + topic + "}";
     }
 }

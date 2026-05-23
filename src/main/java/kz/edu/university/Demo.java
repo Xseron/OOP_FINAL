@@ -36,7 +36,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/** smoke main, proves models work — run with -Dexec.mainClass=kz.edu.university.Demo */
+/** smoke main, proves models work - run with -Dexec.mainClass=kz.edu.university.Demo */
 public class Demo {
 
     public static void main(String[] args) throws Exception {
@@ -58,7 +58,7 @@ public class Demo {
         Teacher teacher = (Teacher) UserFactory.create(UserFactory.Role.TEACHER,
                 2, "John Doe", "jdoe@uni.kz", "jdoe", "pwd");
         Student stu = (Student) UserFactory.create(UserFactory.Role.STUDENT,
-                3, "Alice", "alice@uni.kz", "alice", "pwd");
+                3, "Timur", "timur@uni.kz", "timur", "pwd");
         System.out.println("[Factory] " + teacher);
 
         // login check
@@ -66,7 +66,7 @@ public class Demo {
         System.out.println("[Auth] login bad? " + teacher.login("wrong"));
 
         // 3. Strategy + h-index
-        Professor prof = new Professor(4, "Dr Bekov", "bekov@uni.kz", "bekov", "pwd",
+        Professor prof = new Professor(4, "Dr David", "david@uni.kz", "david", "pwd",
                 Language.EN, 200000, LocalDate.now());
         prof.publishPaper(makePaper("LMS Logs analysis", 12, 8, LocalDate.of(2024, 5, 1)));
         prof.publishPaper(makePaper("Retake influence", 5, 12, LocalDate.of(2025, 1, 15)));
@@ -82,11 +82,11 @@ public class Demo {
         journal.publishPaper(makePaper("Brand new", 0, 5, LocalDate.now()));
 
         // 5. LowHIndexException
-        GraduateStudent grad = new GraduateStudent(5, "Bob", "bob@uni.kz", "bob", "pwd",
+        GraduateStudent grad = new GraduateStudent(5, "Danil", "danil@uni.kz", "danil", "pwd",
                 Language.EN, "ST5", "SITE", "CS", 1, DegreeType.MASTER);
         Professor noobProf = new Professor(6, "Noob", "noob@uni.kz", "noob", "pwd",
                 Language.EN, 100000, LocalDate.now());
-        // noobProf has 0 papers → h-index 0
+        // noobProf has 0 papers -> h-index 0
         try {
             grad.chooseSupervisor(noobProf);
         } catch (LowHIndexException e) {
@@ -144,7 +144,7 @@ public class Demo {
 
         // 12. Tech support flow
         TechSupportSpecialist support = (TechSupportSpecialist) UserFactory.create(
-                UserFactory.Role.TECH_SUPPORT, 7, "Sara", "sara@uni.kz", "sara", "pwd");
+                UserFactory.Role.TECH_SUPPORT, 7, "Superman", "superman@uni.kz", "superman", "pwd");
         SupportRequest req = teacher.createRequest("projector broken in room 305");
         support.getAssignedRequests().add(req);
         req.assign(support);
@@ -173,7 +173,7 @@ public class Demo {
     }
 
     private static ResearchPaper makePaper(String title, int citations, int pages, LocalDate date) {
-        ResearchPaper p = new ResearchPaper(title, Arrays.asList("Bekov A."),
+        ResearchPaper p = new ResearchPaper(title, Arrays.asList("David T."),
                 "Journal of Edu Tech", pages, date, "10.1000/" + title.hashCode());
         p.setCitations(citations);
         return p;

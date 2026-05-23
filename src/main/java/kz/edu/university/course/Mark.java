@@ -2,7 +2,7 @@ package kz.edu.university.course;
 
 import java.io.Serializable;
 
-/** student mark — 1st att / 2nd att / final */
+/** student mark - 1st att / 2nd att / final */
 public class Mark implements Serializable {
     private static final long serialVersionUID = 1L;
 

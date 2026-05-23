@@ -43,7 +43,7 @@ public class Report implements Serializable {
         return content != null && !content.trim().isEmpty();
     }
 
-    /** noop — generation happens at construction; method exists per UML */
+    /** noop - generation happens at construction; method exists per UML */
     public void generate() {
         if (createdAt == null)
             createdAt = LocalDateTime.now();

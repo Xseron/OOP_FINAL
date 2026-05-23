@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-/** interactive cli — login + role-based menus */
+/** interactive cli - login + role-based menus */
 public class App {
 
     private static final Scanner IN = new Scanner(System.in);
@@ -78,16 +78,16 @@ public class App {
                 Language.EN, 90000, LocalDate.now(), ManagerType.DEPARTMENT);
         Teacher teacher = new Teacher(3, "John Doe", "jdoe@uni.kz", "jdoe", "jdoe",
                 Language.EN, 80000, LocalDate.now(), TeacherType.LECTURER);
-        Professor prof = new Professor(4, "Dr Bekov", "bekov@uni.kz", "bekov", "bekov",
+        Professor prof = new Professor(4, "Dr David", "david@uni.kz", "david", "david",
                 Language.EN, 200000, LocalDate.now());
-        Student alice = new Student(5, "Alice", "alice@uni.kz", "alice", "alice",
+        Student timur = new Student(5, "Timur", "timur@uni.kz", "timur", "timur",
                 Language.EN, "ST5", "SITE", "CS", 1);
-        GraduateStudent bob = new GraduateStudent(6, "Bob", "bob@uni.kz", "bob", "bob",
+        GraduateStudent danil = new GraduateStudent(6, "Danil", "danil@uni.kz", "danil", "danil",
                 Language.EN, "ST6", "SITE", "CS", 1, DegreeType.MASTER);
-        TechSupportSpecialist sara = new TechSupportSpecialist(7, "Sara", "sara@uni.kz",
-                "sara", "sara", Language.EN, 70000, LocalDate.now());
+        TechSupportSpecialist superman = new TechSupportSpecialist(7, "Superman", "superman@uni.kz",
+                "superman", "superman", Language.EN, 70000, LocalDate.now());
 
-        for (User u : List.of(admin, dean, teacher, prof, alice, bob, sara)) {
+        for (User u : List.of(admin, dean, teacher, prof, timur, danil, superman)) {
             USERS.put(u.getUsername(), u);
             admin.addUser(u);
         }
@@ -106,17 +106,17 @@ public class App {
 
         // seed news
         NEWS.add(new News("Welcome", "Semester started", NewsTopic.GENERAL));
-        NEWS.add(new News("Bekov publishes new paper", "see journal", NewsTopic.RESEARCH));
+        NEWS.add(new News("David publishes new paper", "see journal", NewsTopic.RESEARCH));
 
-        // seed journal w/ alice + bob subscribed
+        // seed journal w/ timur + danil subscribed
         ResearchJournal j = new ResearchJournal("SITE Research Quarterly");
-        j.subscribe(alice);
-        j.subscribe(bob);
+        j.subscribe(timur);
+        j.subscribe(danil);
         JOURNALS.add(j);
     }
 
     private static ResearchPaper paper(String t, int cit, int pg, LocalDate d) {
-        ResearchPaper p = new ResearchPaper(t, Arrays.asList("Bekov A."),
+        ResearchPaper p = new ResearchPaper(t, Arrays.asList("David T."),
                 "Journal of Edu Tech", pg, d, "10.1000/" + Math.abs(t.hashCode()));
         p.setCitations(cit);
         return p;
@@ -125,7 +125,14 @@ public class App {
     // ---------- login ----------
     private static void banner() {
         println("=== University Research System ===");
-        println("seeded users (user/pwd): admin, dean, jdoe, bekov, alice, bob, sara");
+        println("seeded users (login = password):");
+        println("  admin    - sys admin: manage users, view action logs");
+        println("  dean     - manager: assign courses, news, academic reports");
+        println("  jdoe     - teacher: put marks, complaints, messages, support requests");
+        println("  david    - professor (researcher): publish papers, h-index, BibTeX cite");
+        println("  timur    - undergrad student: register for courses, view marks, rate teachers");
+        println("  danil    - grad student (master): + pick supervisor (h-index >= 3)");
+        println("  superman - tech support: process request queue (NEW -> VIEWED -> DONE/REJECTED)");
         println("type 'q' as username to quit\n");
     }
 
@@ -367,7 +374,7 @@ public class App {
 
     // ---------- support ----------
     private static void supportMenu(TechSupportSpecialist t) {
-        // pull global queue → assigned
+        // pull global queue -> assigned
         for (SupportRequest r : ALL_REQUESTS) {
             if (r.getAssignee() == null) {
                 r.assign(t);
@@ -376,7 +383,7 @@ public class App {
         }
         while (true) {
             switch (menu("SUPPORT " + t.getUsername(), List.of(
-                    "view all", "view new", "process next (view→accept→done)",
+                    "view all", "view new", "process next (view->accept->done)",
                     "reject one", "logout"))) {
                 case 1 -> t.getAssignedRequests().forEach(r -> println("  " + r));
                 case 2 -> t.viewNewRequests().forEach(r -> println("  " + r));

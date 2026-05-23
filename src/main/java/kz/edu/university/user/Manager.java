@@ -48,7 +48,7 @@ public class Manager extends Employee {
 
     /** add course to registration pool */
     public void addCourseForRegistration(Course course, String major, int year) {
-        // tag is implicit — Course already carries major/year
+        // tag is implicit - Course already carries major/year
         registrationCourses.add(course);
     }
 

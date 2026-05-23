@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/** research project — only researchers can join */
+/** research project - only researchers can join */
 public class ResearchProject implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -38,7 +38,7 @@ public class ResearchProject implements Serializable {
         participants.add(researcher);
     }
 
-    /** overload for adding by raw object — throws if not Researcher */
+    /** overload for adding by raw object - throws if not Researcher */
     public void addParticipant(Object person) throws NotResearcherException {
         // Pattern matching keeps type-check and cast in one place.
         if (!(person instanceof Researcher r)) {

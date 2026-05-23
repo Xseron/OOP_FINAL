@@ -55,7 +55,7 @@ public class Complaint implements Serializable {
         return createdAt;
     }
 
-    /** "send" to dean — just print for demo */
+    /** "send" to dean - just print for demo */
     public void submit() {
         System.out.println("[Complaint " + urgencyLevel + "] from "
                 + teacher.getUsername() + " about " + student.getUsername()
