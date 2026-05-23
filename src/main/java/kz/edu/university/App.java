@@ -323,8 +323,12 @@ public class App {
                     Teacher t = pickTeacher();
                     if (t != null) {
                         int r = askInt("rating 1..5");
-                        s.rateTeacher(t, r);
-                        println("rated");
+                        try {
+                            s.rateTeacher(t, r);
+                            println("rated");
+                        } catch (IllegalArgumentException e) {
+                            println("denied: " + e.getMessage());
+                        }
                     }
                 }
                 case 6 -> {
@@ -390,18 +394,26 @@ public class App {
                 case 3 -> {
                     SupportRequest r = pickRequest(t);
                     if (r != null) {
-                        t.markViewed(r);
-                        t.acceptRequest(r);
-                        t.markDone(r);
-                        println("done: " + r);
+                        try {
+                            t.markViewed(r);
+                            t.acceptRequest(r);
+                            t.markDone(r);
+                            println("done: " + r);
+                        } catch (IllegalStateException e) {
+                            println("denied: " + e.getMessage());
+                        }
                     }
                 }
                 case 4 -> {
                     SupportRequest r = pickRequest(t);
                     if (r != null) {
-                        t.markViewed(r);
-                        t.rejectRequest(r);
-                        println("rejected: " + r);
+                        try {
+                            t.markViewed(r);
+                            t.rejectRequest(r);
+                            println("rejected: " + r);
+                        } catch (IllegalStateException e) {
+                            println("denied: " + e.getMessage());
+                        }
                     }
                 }
                 case 0 -> { return; }
@@ -428,7 +440,7 @@ public class App {
         try {
             s.registerForCourse(c);
             println("registered");
-        } catch (CreditLimitExceededException | TooManyFailsException e) {
+        } catch (CreditLimitExceededException | TooManyFailsException | IllegalArgumentException e) {
             println("denied: " + e.getMessage());
         }
     }
@@ -440,9 +452,13 @@ public class App {
         int a1 = askInt("att1");
         int a2 = askInt("att2");
         int fin = askInt("final");
-        t.putMark(s, c, new Mark(a1, a2, fin));
-        s.recomputeGpa();
-        println("mark recorded, gpa=" + s.getGpa());
+        try {
+            t.putMark(s, c, new Mark(a1, a2, fin));
+            s.recomputeGpa();
+            println("mark recorded, gpa=" + s.getGpa());
+        } catch (IllegalArgumentException e) {
+            println("denied: " + e.getMessage());
+        }
     }
 
     private static void complaintFlow(Teacher t) {
@@ -451,8 +467,12 @@ public class App {
         Manager dean = (Manager) USERS.get("dean");
         UrgencyLevel u = pickEnum(UrgencyLevel.values());
         String txt = ask("text");
-        var c = t.sendComplaint(s, dean, u, txt);
-        println("sent: " + c);
+        try {
+            var c = t.sendComplaint(s, dean, u, txt);
+            println("sent: " + c);
+        } catch (IllegalArgumentException e) {
+            println("denied: " + e.getMessage());
+        }
     }
 
     private static void messageFlow(Employee from) {
