@@ -24,6 +24,8 @@ import kz.edu.university.research.Researcher;
 import kz.edu.university.research.comparator.PaperByCitationComparator;
 import kz.edu.university.research.comparator.PaperByDateComparator;
 import kz.edu.university.research.comparator.PaperByPagesComparator;
+import kz.edu.university.storage.DataStore;
+import kz.edu.university.storage.SystemState;
 import kz.edu.university.support.SupportRequest;
 import kz.edu.university.user.Admin;
 import kz.edu.university.user.Employee;
@@ -34,6 +36,7 @@ import kz.edu.university.user.Teacher;
 import kz.edu.university.user.TechSupportSpecialist;
 import kz.edu.university.util.LocalizationManager;
 
+import java.io.File;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -45,9 +48,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-/** interactive cli - login + role-based menus */
 public class App {
-
+    private static final String STATE_FILE = "state.ser";
     private static final Scanner IN = new Scanner(System.in);
     private static final Map<String, User> USERS = new HashMap<>();
     private static final List<Course> COURSES = new ArrayList<>();
@@ -55,18 +57,54 @@ public class App {
     private static final List<ResearchJournal> JOURNALS = new ArrayList<>();
     private static final List<SupportRequest> ALL_REQUESTS = new ArrayList<>();
     private static final List<Researcher> RESEARCHERS = new ArrayList<>();
+    private static Researcher lastTopResearcher;
 
     public static void main(String[] args) {
         System.setOut(new PrintStream(System.out, true, StandardCharsets.UTF_8));
-        seed();
+        loadOrSeed();
         banner();
         while (true) {
             User u = promptLogin();
             if (u == null) {
+                save();
                 println("bye");
                 return;
             }
             menuFor(u);
+        }
+    }
+
+    private static void loadOrSeed() {
+        if (new File(STATE_FILE).exists()) {
+            try {
+                SystemState s = DataStore.getInstance().load(STATE_FILE);
+                restore(s);
+                lastTopResearcher = topCitedResearcher(); // derived; re-baseline after load
+                println("[state] loaded " + USERS.size() + " users from " + STATE_FILE);
+                return;
+            } catch (Exception e) {
+                println("[state] load failed (" + e.getMessage() + "), seeding fresh");
+            }
+        }
+        seed();
+    }
+
+    private static void restore(SystemState s) {
+        USERS.clear();        USERS.putAll(s.getUsers());
+        COURSES.clear();      COURSES.addAll(s.getCourses());
+        NEWS.clear();         NEWS.addAll(s.getNews());
+        JOURNALS.clear();     JOURNALS.addAll(s.getJournals());
+        ALL_REQUESTS.clear(); ALL_REQUESTS.addAll(s.getRequests());
+        RESEARCHERS.clear();  RESEARCHERS.addAll(s.getResearchers());
+    }
+
+    private static void save() {
+        try {
+            SystemState s = new SystemState(USERS, COURSES, NEWS, JOURNALS, ALL_REQUESTS, RESEARCHERS);
+            DataStore.getInstance().save(s, STATE_FILE);
+            println("[state] saved to " + STATE_FILE);
+        } catch (Exception e) {
+            println("[state] save failed: " + e.getMessage());
         }
     }
 
@@ -92,27 +130,29 @@ public class App {
             admin.addUser(u);
         }
 
-        // seed courses
         COURSES.add(new Course("CS101", "Intro CS", 6, CourseType.MAJOR, "CS", 1));
         COURSES.add(new Course("CS102", "Algorithms", 6, CourseType.MAJOR, "CS", 1));
         COURSES.add(new Course("MATH201", "Calculus", 5, CourseType.MAJOR, "CS", 1));
         COURSES.add(new Course("PHIL101", "Philosophy", 3, CourseType.FREE_ELECTIVE, "ANY", 1));
 
-        // seed papers for prof
         prof.publishPaper(paper("LMS Logs analysis", 12, 8, LocalDate.of(2024, 5, 1)));
         prof.publishPaper(paper("Retake influence", 5, 12, LocalDate.of(2025, 1, 15)));
         prof.publishPaper(paper("Student perf clustering", 30, 20, LocalDate.of(2023, 11, 30)));
         RESEARCHERS.add(prof);
 
-        // seed news
+        danil.publishPaper(paper("Distributed retake scheduling", 7, 14, LocalDate.of(2025, 3, 10)));
+        danil.publishPaper(paper("Grad cohort survey", 2, 6, LocalDate.of(2024, 9, 1)));
+        RESEARCHERS.add(danil);
+
         NEWS.add(new News("Welcome", "Semester started", NewsTopic.GENERAL));
         NEWS.add(new News("David publishes new paper", "see journal", NewsTopic.RESEARCH));
 
-        // seed journal w/ timur + danil subscribed
         ResearchJournal j = new ResearchJournal("SITE Research Quarterly");
         j.subscribe(timur);
         j.subscribe(danil);
         JOURNALS.add(j);
+
+        lastTopResearcher = topCitedResearcher();
     }
 
     private static ResearchPaper paper(String t, int cit, int pg, LocalDate d) {
@@ -196,7 +236,8 @@ public class App {
                     "list courses", "assign course to teacher",
                     "add course to registration pool", "publish news",
                     "list students sorted by gpa", "create academic report",
-                    "view requests", "logout"))) {
+                    "view requests", "print all university papers (sorted)",
+                    "top cited researcher", "logout"))) {
                 case 1 -> COURSES.forEach(c -> println("  " + c));
                 case 2 -> {
                     Course c = pickCourse();
@@ -231,6 +272,8 @@ public class App {
                     r.export();
                 }
                 case 7 -> ALL_REQUESTS.forEach(r -> println("  " + r));
+                case 8 -> printAllPapersFlow();
+                case 9 -> topCitedFlow();
                 case 0 -> { return; }
             }
         }
@@ -274,17 +317,19 @@ public class App {
         }
     }
 
-    private static void publishPaperFlow(Professor p) {
+    private static void publishPaperFlow(Researcher r) {
         String t = ask("title");
         int pg = askInt("pages");
-        LocalDate d = LocalDate.now();
-        ResearchPaper paper = paperOf(t, 0, pg, d);
-        p.publishPaper(paper);
-        // notify all journals
+        int cit = Math.max(0, askInt("known citations (0 if brand new)"));
+        ResearchPaper paper = paperOf(t, cit, pg, LocalDate.now());
+        r.publishPaper(paper);
+        // notify all journals (Observer pattern)
         JOURNALS.forEach(j -> j.publishPaper(paper));
-        // auto-news
-        NEWS.add(new News("New paper by " + p.getUsername(),
+        // base news for the new paper
+        NEWS.add(new News("New paper by " + researcherName(r),
                 "'" + t + "' published", NewsTopic.RESEARCH));
+        // spec: auto-generate news when the university-wide top cited researcher changes
+        announceTopCitedIfChanged();
         println("published");
     }
 
@@ -296,12 +341,100 @@ public class App {
     }
 
     private static void printPapersFlow(Professor p) {
-        switch (menu("sort by", List.of("citations", "date", "pages"))) {
-            case 1 -> p.printPapers(new PaperByCitationComparator());
-            case 2 -> p.printPapers(new PaperByDateComparator());
-            case 3 -> p.printPapers(new PaperByPagesComparator());
+        Comparator<ResearchPaper> c = pickPaperComparator();
+        if (c != null) p.printPapers(c);
+    }
+
+    /** ask which comparator to sort papers by; null if the choice was invalid */
+    private static Comparator<ResearchPaper> pickPaperComparator() {
+        // menu() renders the last item ("pages") as option 0, so match that here.
+        return switch (menu("sort by", List.of("citations", "date", "pages"))) {
+            case 1 -> new PaperByCitationComparator();
+            case 2 -> new PaperByDateComparator();
+            case 0 -> new PaperByPagesComparator();
+            default -> null;
+        };
+    }
+
+    private static void printAllPapersFlow() {
+        if (RESEARCHERS.isEmpty()) { println("no researchers"); return; }
+        Comparator<ResearchPaper> c = pickPaperComparator();
+        if (c == null) return;
+        List<ResearchPaper> all = RESEARCHERS.stream()
+                .flatMap(r -> r.getPapers().stream())
+                .sorted(c)
+                .toList();
+        if (all.isEmpty()) { println("  (no papers published yet)"); return; }
+        all.forEach(p -> println("  " + p));
+    }
+
+    private static void topCitedFlow() {
+        if (RESEARCHERS.isEmpty()) { println("no researchers"); return; }
+        switch (menu("top cited researcher", List.of("overall", "by year", "by school"))) {
+            case 1 -> {
+                Researcher r = topCitedResearcher();
+                printTopCited(r, "overall", r == null ? 0 : totalCitations(r));
+            }
+            case 2 -> {
+                int year = askInt("year (e.g. 2025)");
+                Researcher r = topCitedResearcherOfYear(year);
+                printTopCited(r, "in " + year, r == null ? 0 : citationsInYear(r, year));
+            }
+            case 0 -> { // "by school" is the last item, rendered as 0 by menu()
+                String school = ask("school (e.g. SITE)");
+                Researcher r = topCitedResearcherOfSchool(school);
+                printTopCited(r, "in school " + school, r == null ? 0 : totalCitations(r));
+            }
             default -> {}
         }
+    }
+
+    private static void printTopCited(Researcher r, String scope, int cits) {
+        if (r == null || cits == 0) { println("no cited researcher " + scope); return; }
+        println("top cited " + scope + ": " + researcherName(r) + " (" + cits + " citations)");
+    }
+
+    /** sum of citations across a researcher's papers */
+    private static int totalCitations(Researcher r) {
+        return r.getPapers().stream().mapToInt(ResearchPaper::getCitations).sum();
+    }
+
+    private static int citationsInYear(Researcher r, int year) {
+        return r.getPapers().stream()
+                .filter(p -> p.getPublishDate() != null && p.getPublishDate().getYear() == year)
+                .mapToInt(ResearchPaper::getCitations).sum();
+    }
+
+    private static Researcher topCitedResearcher() {
+        return RESEARCHERS.stream()
+                .max(Comparator.comparingInt(App::totalCitations))
+                .orElse(null);
+    }
+
+    private static Researcher topCitedResearcherOfYear(int year) {
+        return RESEARCHERS.stream()
+                .max(Comparator.comparingInt(r -> citationsInYear(r, year)))
+                .orElse(null);
+    }
+
+    private static Researcher topCitedResearcherOfSchool(String school) {
+        return RESEARCHERS.stream()
+                .filter(r -> r instanceof Student s && school.equalsIgnoreCase(s.getSchool()))
+                .max(Comparator.comparingInt(App::totalCitations))
+                .orElse(null);
+    }
+
+    private static String researcherName(Researcher r) {
+        return (r instanceof User u) ? u.getUsername() : String.valueOf(r);
+    }
+
+    private static void announceTopCitedIfChanged() {
+        Researcher top = topCitedResearcher();
+        if (top == null || top == lastTopResearcher) return;
+        lastTopResearcher = top;
+        NEWS.add(new News("Top cited researcher: " + researcherName(top),
+                researcherName(top) + " now leads with " + totalCitations(top)
+                        + " total citations", NewsTopic.RESEARCH));
     }
 
     // ---------- student ----------
@@ -349,13 +482,14 @@ public class App {
             switch (menu("GRAD " + g.getUsername() + " (" + g.getDegreeType() + ")", List.of(
                     "view courses", "register", "view marks",
                     "choose supervisor", "view supervisor",
-                    "view news", "logout"))) {
+                    "publish paper", "view news", "logout"))) {
                 case 1 -> COURSES.forEach(c -> println("  " + c));
                 case 2 -> registerFlow(g);
                 case 3 -> g.viewMarks().forEach(m -> println("  " + m));
                 case 4 -> chooseSupervisorFlow(g);
                 case 5 -> println("supervisor: " + g.getSupervisor());
-                case 6 -> printNews();
+                case 6 -> publishPaperFlow(g);
+                case 7 -> printNews();
                 case 0 -> { return; }
             }
         }
@@ -378,7 +512,6 @@ public class App {
 
     // ---------- support ----------
     private static void supportMenu(TechSupportSpecialist t) {
-        // pull global queue -> assigned
         for (SupportRequest r : ALL_REQUESTS) {
             if (r.getAssignee() == null) {
                 r.assign(t);
@@ -464,7 +597,10 @@ public class App {
     private static void complaintFlow(Teacher t) {
         Student s = pickStudent();
         if (s == null) return;
-        Manager dean = (Manager) USERS.get("dean");
+        Manager dean = USERS.values().stream()
+                .filter(u -> u instanceof Manager).map(u -> (Manager) u)
+                .findFirst().orElse(null);
+        if (dean == null) { println("denied: no manager to receive complaint"); return; }
         UrgencyLevel u = pickEnum(UrgencyLevel.values());
         String txt = ask("text");
         try {
@@ -547,8 +683,12 @@ public class App {
 
     private static <E extends Enum<E>> E pickEnum(E[] values) {
         for (int i = 0; i < values.length; i++) println("  " + (i + 1) + ") " + values[i]);
-        int idx = askInt("choice") - 1;
-        return (idx >= 0 && idx < values.length) ? values[idx] : values[0];
+        // Re-prompt instead of silently defaulting to values[0] on bad input.
+        while (true) {
+            int idx = askInt("choice") - 1;
+            if (idx >= 0 && idx < values.length) return values[idx];
+            println("invalid choice, pick 1.." + values.length);
+        }
     }
 
     // ---------- io helpers ----------
@@ -577,7 +717,6 @@ public class App {
         System.out.println(s);
     }
 
-    // make LocalizationManager init eagerly so unused-warning shrinks
     @SuppressWarnings("unused")
     private static final LocalizationManager LOC = LocalizationManager.getInstance();
 }

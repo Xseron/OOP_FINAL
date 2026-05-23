@@ -36,14 +36,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/** smoke main, proves models work - run with -Dexec.mainClass=kz.edu.university.Demo */
 public class Demo {
 
     public static void main(String[] args) throws Exception {
-        // utf-8 console (windows ru/kz)
         System.setOut(new java.io.PrintStream(System.out, true, java.nio.charset.StandardCharsets.UTF_8));
 
-        // 1. Singleton + lang switch
         LocalizationManager loc = LocalizationManager.getInstance();
         loc.setLanguage(Language.EN);
         System.out.println("[Lang:EN] " + loc.getMessage("welcome"));
@@ -52,7 +49,6 @@ public class Demo {
         loc.setLanguage(Language.KZ);
         System.out.println("[Lang:KZ] " + loc.getMessage("welcome"));
 
-        // 2. Factory
         Manager dean = (Manager) UserFactory.create(UserFactory.Role.MANAGER,
                 1, "Dean Smith", "dean@uni.kz", "dean", "pwd");
         Teacher teacher = (Teacher) UserFactory.create(UserFactory.Role.TEACHER,
@@ -61,11 +57,9 @@ public class Demo {
                 3, "Timur", "timur@uni.kz", "timur", "pwd");
         System.out.println("[Factory] " + teacher);
 
-        // login check
         System.out.println("[Auth] login ok? " + teacher.login("pwd"));
         System.out.println("[Auth] login bad? " + teacher.login("wrong"));
 
-        // 3. Strategy + h-index
         Professor prof = new Professor(4, "Dr David", "david@uni.kz", "david", "pwd",
                 Language.EN, 200000, LocalDate.now());
         prof.publishPaper(makePaper("LMS Logs analysis", 12, 8, LocalDate.of(2024, 5, 1)));
@@ -75,28 +69,23 @@ public class Demo {
         prof.printPapers(new PaperByCitationComparator());
         System.out.println("[h-index] " + prof.calculateHIndex());
 
-        // 4. Observer
         ResearchJournal journal = new ResearchJournal("SITE Research Quarterly");
         journal.subscribe(stu);
         journal.subscribe(teacher);
         journal.publishPaper(makePaper("Brand new", 0, 5, LocalDate.now()));
 
-        // 5. LowHIndexException
         GraduateStudent grad = new GraduateStudent(5, "Danil", "danil@uni.kz", "danil", "pwd",
                 Language.EN, "ST5", "SITE", "CS", 1, DegreeType.MASTER);
         Professor noobProf = new Professor(6, "Noob", "noob@uni.kz", "noob", "pwd",
                 Language.EN, 100000, LocalDate.now());
-        // noobProf has 0 papers -> h-index 0
         try {
             grad.chooseSupervisor(noobProf);
         } catch (LowHIndexException e) {
             System.out.println("[Exception] caught: " + e.getMessage());
         }
-        // good supervisor
         grad.chooseSupervisor(prof);
         System.out.println("[Supervisor] assigned: " + grad.getSupervisor());
 
-        // 6. NotResearcherException
         ResearchProject proj = new ResearchProject("Education ML");
         try {
             proj.addParticipant((Object) stu); // Student is not a Researcher
@@ -115,7 +104,6 @@ public class Demo {
             System.out.println("[Exception] caught: " + e.getMessage());
         }
 
-        // 8. News pin
         News n1 = new News("Hello", "general news", NewsTopic.GENERAL);
         News n2 = new News("Big paper out", "research news", NewsTopic.RESEARCH);
         News n3 = new News("Event", "concert tonight", NewsTopic.EVENT);
@@ -124,17 +112,15 @@ public class Demo {
         System.out.println("[News] sorted (pinned first):");
         feed.forEach(n -> System.out.println("  " + n));
 
-        // 9. putMark + report stats
+        dean.assignCourse(c1, teacher, LessonType.LECTURE);
         teacher.putMark(stu, c1, new Mark(85, 90, 88));
         Report report = dean.createAcademicReport();
         report.setContent("Stats: " + Report.marksStats(stu.viewMarks()));
         report.export();
 
-        // 10. Complaint
         Complaint cpl = teacher.sendComplaint(stu, dean, UrgencyLevel.HIGH, "missed class 3 times");
         System.out.println("[Complaint] " + cpl);
 
-        // 11. Serialization round-trip
         String path = "data.ser";
         DataStore.getInstance().save(prof, path);
         Professor loaded = DataStore.getInstance().load(path);
@@ -142,7 +128,6 @@ public class Demo {
                 + ", papers=" + loaded.getPapers().size()
                 + ", h-index=" + loaded.calculateHIndex());
 
-        // 12. Tech support flow
         TechSupportSpecialist support = (TechSupportSpecialist) UserFactory.create(
                 UserFactory.Role.TECH_SUPPORT, 7, "Superman", "superman@uni.kz", "superman", "pwd");
         SupportRequest req = teacher.createRequest("projector broken in room 305");
@@ -155,13 +140,10 @@ public class Demo {
         support.markDone(req);
         System.out.println("[Support] done: " + req);
 
-        // 13. Citation formats
         ResearchPaper anyPaper = prof.getPapers().get(0);
         System.out.println("[Cite:Plain ] " + anyPaper.getCitation(Format.PLAIN_TEXT));
         System.out.println("[Cite:BibTeX]\n" + anyPaper.getCitation(Format.BIBTEX));
 
-        // 14. Manager assigns course + Student rates teacher
-        dean.assignCourse(c1, teacher, LessonType.LECTURE);
         System.out.println("[Assign] " + teacher.getUsername()
                 + " has " + teacher.viewCourses().size() + " course(s)");
         stu.rateTeacher(teacher, 5);
